@@ -3,7 +3,7 @@ import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import api from "../api/client";
+import api, { downloadFile } from "../api/client";
 
 const COLORS = ["#16a34a", "#dc2626"];
 
@@ -18,8 +18,15 @@ export default function Analytics() {
   };
   useEffect(() => { load(); }, [semester]);
 
-  const download = () => {
-    window.open(`${import.meta.env.VITE_API_BASE || ""}/api/reports/semester/excel?semester=${encodeURIComponent(semester)}`, "_blank");
+  const download = async () => {
+    try {
+      await downloadFile(
+        `/api/reports/semester/excel?semester=${encodeURIComponent(semester)}`,
+        `semester_${semester.replace(/\//g, "-")}.xlsx`
+      );
+    } catch {
+      alert("Could not export the semester report.");
+    }
   };
 
   const pieData = sem

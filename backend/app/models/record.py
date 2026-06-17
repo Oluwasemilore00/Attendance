@@ -45,6 +45,11 @@ class AttendanceRecord(db.Model):
         return {
             "id": self.id,
             "session_id": self.session_id,
+            "course_id": self.session.course_id if self.session else None,
+            "course_code": (
+                self.session.course.course_code
+                if self.session and self.session.course else None
+            ),
             "student_id": self.student_id,
             "matric_number": self.student.matric_number if self.student else None,
             "student_name": self.student.full_name if self.student else None,

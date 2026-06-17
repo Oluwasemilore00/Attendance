@@ -205,7 +205,31 @@ def list_records():
         )
 
     records = query.order_by(AttendanceRecord.timestamp.desc()).limit(1000).all()
-    return jsonify({"records": [r.to_dict() for r in records]})
+
+    # Bulk-resolve enrollment so the UI can offer an "Enroll" action for
+    # students who signed but are not enrolled in the course (no N+1).
+    pairs = {
+        (r.student_id, r.session.course_id) for r in records if r.session
+    }
+    enrolled_pairs = set()
+    if pairs:
+        student_ids = {p[0] for p in pairs}
+        course_ids = {p[1] for p in pairs}
+        rows = CourseEnrollment.query.filter(
+            CourseEnrollment.student_id.in_(student_ids),
+            CourseEnrollment.course_id.in_(course_ids),
+        ).all()
+        enrolled_pairs = {(e.student_id, e.course_id) for e in rows}
+
+    payload = []
+    for r in records:
+        d = r.to_dict()
+        d["is_enrolled"] = (
+            (r.student_id, r.session.course_id) in enrolled_pairs
+            if r.session else True
+        )
+        payload.append(d)
+    return jsonify({"records": payload})
 
 
 @attendance_bp.patch("/records/<int:record_id>")
@@ -227,3 +251,55 @@ def update_record_status(record_id):
     record.flag_reason = data.get("flag_reason", record.flag_reason)
     db.session.commit()
     return jsonify({"record": record.to_dict()})
+
+
+@attendance_bp.post("/records/<int:record_id>/enroll")
+@roles_required(*Role.ALL)
+def enroll_from_record(record_id):
+    """Enroll the record's student into the course they signed for.
+
+    Used when a student signs attendance for a course they were not enrolled
+    in (the record is flagged). Enrolling clears that flag and validates the
+    record so it counts towards attendance.
+    """
+    record = db.session.get(AttendanceRecord, record_id)
+    if record is None:
+        return jsonify({"error": "Record not found."}), 404
+    user = current_user()
+    if not can_view_owner(user, record.session.course.owner_id):
+        return jsonify({"error": "Record not found."}), 404
+
+    course_id = record.session.course_id
+    student = record.student
+
+    enrollment = CourseEnrollment.query.filter_by(
+        student_id=student.id, course_id=course_id
+    ).first()
+    created = False
+    if enrollment is None:
+        db.session.add(
+            CourseEnrollment(student_id=student.id, course_id=course_id)
+        )
+        created = True
+
+    # If the record was flagged only because the student wasn't enrolled,
+    # it is now legitimate — validate it and clear the flag.
+    if (
+        record.attendance_status == AttendanceStatus.FLAGGED
+        and record.flag_reason
+        and "not enrolled" in record.flag_reason.lower()
+    ):
+        record.attendance_status = AttendanceStatus.VALID
+        record.flag_reason = None
+
+    db.session.commit()
+    return jsonify(
+        {
+            "message": (
+                "Student enrolled and attendance validated."
+                if created else "Student was already enrolled."
+            ),
+            "created": created,
+            "record": record.to_dict(),
+        }
+    )

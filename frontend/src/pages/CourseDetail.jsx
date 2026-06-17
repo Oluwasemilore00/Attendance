@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import api from "../api/client";
+import api, { downloadFile } from "../api/client";
 
 export default function CourseDetail() {
   const { id } = useParams();
@@ -32,8 +32,15 @@ export default function CourseDetail() {
     load();
   };
 
-  const download = () => {
-    window.open(`${import.meta.env.VITE_API_BASE || ""}/api/reports/course/${id}/excel`, "_blank");
+  const download = async () => {
+    try {
+      await downloadFile(
+        `/api/reports/course/${id}/excel`,
+        `${course?.course_code || "course"}_attendance.xlsx`
+      );
+    } catch {
+      alert("Could not export the course report.");
+    }
   };
 
   if (!course) return <div>Loading…</div>;

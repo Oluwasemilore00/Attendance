@@ -47,3 +47,21 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+// Download a protected file through the authenticated client (so the JWT is
+// sent) and save it. window.open() can't be used because it omits the token.
+export async function downloadFile(url, fallbackName = "download") {
+  const res = await api.get(url, { responseType: "blob" });
+  const disposition = res.headers["content-disposition"] || "";
+  const match = disposition.match(/filename\*?=(?:UTF-8'')?"?([^"\n;]+)"?/i);
+  const name = match ? decodeURIComponent(match[1]) : fallbackName;
+
+  const blobUrl = URL.createObjectURL(res.data);
+  const link = document.createElement("a");
+  link.href = blobUrl;
+  link.download = name;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(blobUrl);
+}

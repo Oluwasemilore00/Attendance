@@ -169,6 +169,61 @@ def test_analytics_course_report(client):
     assert "students" in res.get_json()
 
 
+def test_enroll_from_record_validates_flagged(client):
+    headers = _auth_header(client)
+    course_id = client.post(
+        "/api/courses",
+        json={"course_code": "CSC303", "course_name": "Networks"},
+        headers=headers,
+    ).get_json()["course"]["id"]
+
+    now = datetime.utcnow()
+    token = client.post(
+        "/api/sessions",
+        json={
+            "course_id": course_id,
+            "start_time": (now - timedelta(hours=1)).isoformat(),
+            "end_time": (now + timedelta(hours=1)).isoformat(),
+            "location_lat": 6.5244, "location_lng": 3.3792, "allowed_radius": 3.0,
+        },
+        headers=headers,
+    ).get_json()["session"]["public_token"]
+
+    # A student who is NOT enrolled signs -> flagged record.
+    client.post(
+        f"/api/attendance/session/{token}/submit",
+        json={
+            "full_name": "Walk In", "matric_number": "WALK01",
+            "device_id": "dev-walk", "latitude": 6.5244, "longitude": 3.3792,
+        },
+    )
+
+    recs = client.get("/api/attendance/records", headers=headers).get_json()["records"]
+    flagged = [r for r in recs if r["matric_number"] == "WALK01"][0]
+    assert flagged["attendance_status"] == "flagged"
+    assert flagged["is_enrolled"] is False
+
+    # Enroll from the record -> validated + enrolled.
+    res = client.post(f"/api/attendance/records/{flagged['id']}/enroll", headers=headers)
+    assert res.status_code == 200
+    assert res.get_json()["record"]["attendance_status"] == "valid"
+
+    recs = client.get("/api/attendance/records", headers=headers).get_json()["records"]
+    after = [r for r in recs if r["matric_number"] == "WALK01"][0]
+    assert after["is_enrolled"] is True
+    assert after["attendance_status"] == "valid"
+
+
+def test_semester_excel_export(client):
+    headers = _auth_header(client)
+    res = client.get(
+        "/api/reports/semester/excel?semester=2024/2025-1", headers=headers
+    )
+    assert res.status_code == 200
+    assert "spreadsheetml" in res.headers["Content-Type"]
+    assert "attachment" in res.headers.get("Content-Disposition", "")
+
+
 def test_course_rep_requires_admin(client):
     # Registering a course rep without an admin must fail.
     res = client.post(

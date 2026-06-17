@@ -19,6 +19,12 @@ export default function Records() {
     load();
   };
 
+  const enrollStudent = async (r) => {
+    if (!confirm(`Enroll ${r.student_name} (${r.matric_number}) in ${r.course_code}?`)) return;
+    await api.post(`/api/attendance/records/${r.id}/enroll`);
+    load();
+  };
+
   return (
     <div>
       <div className="page-head"><h1>Attendance Records</h1></div>
@@ -60,6 +66,9 @@ export default function Records() {
                   {r.flag_reason && <div className="muted" style={{ fontSize: 11 }}>{r.flag_reason}</div>}
                 </td>
                 <td>
+                  {r.is_enrolled === false && (
+                    <button className="btn small" onClick={() => enrollStudent(r)}>Enroll</button>
+                  )}{" "}
                   {r.attendance_status !== "valid" && <button className="btn ghost small" onClick={() => setRecordStatus(r.id, "valid")}>Approve</button>}
                   {r.attendance_status === "valid" && <button className="btn danger small" onClick={() => setRecordStatus(r.id, "invalidated")}>Void</button>}
                 </td>
