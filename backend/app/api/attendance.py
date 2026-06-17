@@ -19,7 +19,12 @@ from app.models import (
     Role,
     Student,
 )
-from app.utils.decorators import current_user, roles_required
+from app.utils.decorators import (
+    can_view_owner,
+    current_user,
+    roles_required,
+    visible_owner_ids,
+)
 from app.utils.geo import within_radius
 
 attendance_bp = Blueprint("attendance", __name__, url_prefix="/api/attendance")
@@ -178,9 +183,10 @@ def submit_attendance(token):
 def list_records():
     user = current_user()
     query = AttendanceRecord.query.join(AttendanceSession)
-    if user.role not in Role.ADMINS:
+    owner_ids = visible_owner_ids(user)
+    if owner_ids is not None:
         from app.models import Course
-        query = query.join(Course).filter(Course.owner_id == user.id)
+        query = query.join(Course).filter(Course.owner_id.in_(owner_ids))
 
     session_id = request.args.get("session_id", type=int)
     if session_id:
@@ -210,7 +216,7 @@ def update_record_status(record_id):
     if record is None:
         return jsonify({"error": "Record not found."}), 404
     user = current_user()
-    if user.role not in Role.ADMINS and record.session.course.owner_id != user.id:
+    if not can_view_owner(user, record.session.course.owner_id):
         return jsonify({"error": "Record not found."}), 404
 
     data = request.get_json(silent=True) or {}

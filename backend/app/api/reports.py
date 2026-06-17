@@ -4,16 +4,21 @@ import io
 import pandas as pd
 from flask import Blueprint, jsonify, request, send_file
 
-from app.models import Role
+from app.extensions import db
+from app.models import Course, Role
 from app.services import analytics_service
-from app.utils.decorators import current_user, roles_required
+from app.utils.decorators import (
+    can_view_owner,
+    current_user,
+    roles_required,
+    visible_owner_ids,
+)
 
 reports_bp = Blueprint("reports", __name__, url_prefix="/api/reports")
 
 
-def _scope_owner():
-    user = current_user()
-    return None if user.role in Role.ADMINS else user.id
+def _scope():
+    return visible_owner_ids(current_user())
 
 
 def _send_excel(sheets: dict[str, pd.DataFrame], filename: str):
@@ -33,6 +38,9 @@ def _send_excel(sheets: dict[str, pd.DataFrame], filename: str):
 @reports_bp.get("/course/<int:course_id>/excel")
 @roles_required(*Role.ALL)
 def course_excel(course_id):
+    course_obj = db.session.get(Course, course_id)
+    if course_obj is None or not can_view_owner(current_user(), course_obj.owner_id):
+        return jsonify({"error": "Course not found."}), 404
     report = analytics_service.course_report(course_id)
     if not report:
         return jsonify({"error": "Course not found."}), 404
@@ -45,7 +53,7 @@ def course_excel(course_id):
 @roles_required(*Role.ALL)
 def semester_excel():
     sem = request.args.get("semester", "2024/2025-1")
-    report = analytics_service.semester_report(sem, owner_id=_scope_owner())
+    report = analytics_service.semester_report(sem, owner_ids=_scope())
     sheets = {
         "Overall": pd.DataFrame(report["students"]),
         "Eligible": pd.DataFrame(report["eligible"]),

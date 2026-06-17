@@ -25,18 +25,18 @@ def client(app):
     return app.test_client()
 
 
-def _register(client, role="course_rep", username="rep1"):
-    return client.post(
-        "/api/auth/register",
-        json={
-            "full_name": "Test Rep",
-            "username": username,
-            "email": f"{username}@test.com",
-            "password": "Str0ng@Pass",
-            "confirm_password": "Str0ng@Pass",
-            "role": role,
-        },
-    )
+def _register(client, role="admin", username="rep1", admin_identifier=None):
+    payload = {
+        "full_name": "Test User",
+        "username": username,
+        "email": f"{username}@test.com",
+        "password": "Str0ng@Pass",
+        "confirm_password": "Str0ng@Pass",
+        "role": role,
+    }
+    if admin_identifier:
+        payload["admin_identifier"] = admin_identifier
+    return client.post("/api/auth/register", json=payload)
 
 
 def test_health(client):
@@ -167,3 +167,70 @@ def test_analytics_course_report(client):
     res = client.get(f"/api/analytics/course/{course_id}", headers=headers)
     assert res.status_code == 200
     assert "students" in res.get_json()
+
+
+def test_course_rep_requires_admin(client):
+    # Registering a course rep without an admin must fail.
+    res = client.post(
+        "/api/auth/register",
+        json={
+            "full_name": "Lonely Rep", "username": "lonelyrep",
+            "email": "lonely@test.com", "password": "Str0ng@Pass",
+            "confirm_password": "Str0ng@Pass", "role": "course_rep",
+        },
+    )
+    assert res.status_code == 400
+
+    # With a valid admin identifier it succeeds and is linked.
+    _register(client, role="admin", username="bossadmin")
+    res = client.post(
+        "/api/auth/register",
+        json={
+            "full_name": "Good Rep", "username": "goodrep",
+            "email": "good@test.com", "password": "Str0ng@Pass",
+            "confirm_password": "Str0ng@Pass", "role": "course_rep",
+            "admin_identifier": "bossadmin",
+        },
+    )
+    assert res.status_code == 201
+    assert res.get_json()["user"]["admin_username"] == "bossadmin"
+
+
+def test_admin_only_sees_own_reps_and_courses(client):
+    a_token = _register(client, role="admin", username="adminA").get_json()["access_token"]
+    b_token = _register(client, role="admin", username="adminB").get_json()["access_token"]
+    rep = _register(
+        client, role="course_rep", username="repA", admin_identifier="adminA"
+    ).get_json()
+    rep_token = rep["access_token"]
+    rep_headers = {"Authorization": f"Bearer {rep_token}"}
+    a_headers = {"Authorization": f"Bearer {a_token}"}
+    b_headers = {"Authorization": f"Bearer {b_token}"}
+
+    # Rep creates a course.
+    client.post(
+        "/api/courses",
+        json={"course_code": "REP101", "course_name": "Rep Course"},
+        headers=rep_headers,
+    )
+
+    # Admin A sees only their rep (not admins, not the other admin).
+    res = client.get("/api/users", headers=a_headers)
+    usernames = [u["username"] for u in res.get_json()["users"]]
+    assert usernames == ["repA"]
+
+    # Admin B sees no reps.
+    assert client.get("/api/users", headers=b_headers).get_json()["users"] == []
+
+    # Admin A sees the rep's course; admin B does not.
+    a_codes = [c["course_code"] for c in client.get("/api/courses", headers=a_headers).get_json()["courses"]]
+    b_codes = [c["course_code"] for c in client.get("/api/courses", headers=b_headers).get_json()["courses"]]
+    assert "REP101" in a_codes
+    assert "REP101" not in b_codes
+
+    # Admin B cannot change roles (only super admin can).
+    rep_id = rep["user"]["id"]
+    res = client.patch(
+        f"/api/users/{rep_id}", json={"role": "admin"}, headers=b_headers
+    )
+    assert res.status_code == 404  # not visible to admin B

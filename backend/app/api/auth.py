@@ -39,6 +39,7 @@ def register():
     password = data.get("password") or ""
     confirm = data.get("confirm_password") or ""
     role = (data.get("role") or Role.COURSE_REP).strip()
+    admin_identifier = (data.get("admin_identifier") or "").strip()
 
     errors = []
     if not full_name:
@@ -57,6 +58,24 @@ def register():
     if role == Role.SUPER_ADMIN:
         errors.append("Super administrator accounts cannot be self-registered.")
 
+    # A course rep must register under an existing administrator.
+    parent_admin = None
+    if role == Role.COURSE_REP:
+        if not admin_identifier:
+            errors.append(
+                "Course representatives must register under an admin "
+                "(provide the admin's username or email)."
+            )
+        else:
+            parent_admin = User.query.filter(
+                (User.username == admin_identifier)
+                | (User.email == admin_identifier.lower())
+            ).first()
+            if parent_admin is None or parent_admin.role not in Role.ADMINS:
+                errors.append("No administrator found with that username/email.")
+            elif not parent_admin.is_active:
+                errors.append("That administrator account is disabled.")
+
     if errors:
         return jsonify({"error": "Validation failed.", "details": errors}), 400
 
@@ -66,6 +85,8 @@ def register():
         return jsonify({"error": "Email already registered."}), 409
 
     user = User(full_name=full_name, username=username, email=norm_email, role=role)
+    if parent_admin is not None:
+        user.admin_id = parent_admin.id
     user.set_password(password)
     db.session.add(user)
     db.session.commit()

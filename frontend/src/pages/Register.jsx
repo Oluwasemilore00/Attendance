@@ -8,6 +8,7 @@ export default function Register() {
   const [form, setForm] = useState({
     full_name: "", username: "", email: "",
     password: "", confirm_password: "", role: "course_rep",
+    admin_identifier: "",
   });
   const [error, setError] = useState("");
   const [details, setDetails] = useState([]);
@@ -73,6 +74,21 @@ export default function Register() {
           <option value="admin">Administrator</option>
         </select>
         <small className="muted">Super administrator accounts are provisioned by the system.</small>
+
+        {form.role === "course_rep" && (
+          <>
+            <label>Administrator's username or email</label>
+            <input
+              value={form.admin_identifier}
+              onChange={upd("admin_identifier")}
+              placeholder="The admin you report to"
+              required
+            />
+            <small className="muted">
+              Course reps register under an existing administrator.
+            </small>
+          </>
+        )}
 
         <button className="btn" style={{ width: "100%", marginTop: 18 }} disabled={busy}>
           {busy ? "Creating…" : "Register"}

@@ -78,8 +78,26 @@ def change_password():
 @users_bp.get("")
 @roles_required(*Role.ADMINS)
 def list_users():
-    users = User.query.order_by(User.created_at.desc()).all()
+    actor = current_user()
+    if actor.role == Role.SUPER_ADMIN:
+        # Super admin sees everyone.
+        users = User.query.order_by(User.created_at.desc()).all()
+    else:
+        # An admin sees only the course reps registered under them
+        # (never the super admin or other admins).
+        users = (
+            User.query.filter_by(admin_id=actor.id)
+            .order_by(User.created_at.desc())
+            .all()
+        )
     return jsonify({"users": [u.to_dict() for u in users]})
+
+
+def _can_manage(actor: User, target: User) -> bool:
+    """Super admin manages anyone; an admin only their own course reps."""
+    if actor.role == Role.SUPER_ADMIN:
+        return True
+    return target.role == Role.COURSE_REP and target.admin_id == actor.id
 
 
 @users_bp.patch("/<int:user_id>")
@@ -87,7 +105,7 @@ def list_users():
 def admin_update_user(user_id):
     actor = current_user()
     user = db.session.get(User, user_id)
-    if user is None:
+    if user is None or not _can_manage(actor, user):
         return jsonify({"error": "User not found."}), 404
     data = request.get_json(silent=True) or {}
 
@@ -95,9 +113,9 @@ def admin_update_user(user_id):
         new_role = data["role"]
         if new_role not in Role.ALL:
             return jsonify({"error": "Invalid role."}), 400
-        # Only super admins may grant the super_admin role.
-        if new_role == Role.SUPER_ADMIN and actor.role != Role.SUPER_ADMIN:
-            return jsonify({"error": "Only a super admin can grant that role."}), 403
+        # Only super admins may change roles (grant admin / super admin).
+        if actor.role != Role.SUPER_ADMIN:
+            return jsonify({"error": "Only a super admin can change roles."}), 403
         user.role = new_role
     if "is_active" in data:
         user.is_active = bool(data["is_active"])

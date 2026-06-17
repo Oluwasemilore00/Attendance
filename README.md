@@ -65,10 +65,31 @@ and ships with multiple anti-cheating safeguards.
 - **Stateless API**: horizontally scalable behind a load balancer; move rate-limit
   storage to Redis for multi-instance deployments.
 
+## Roles & data visibility
+
+The platform uses a three-tier hierarchy (`users.admin_id` links a course rep to
+their administrator):
+
+| Role | Manages | Sees |
+|---|---|---|
+| **Super Administrator** | Everyone; can change any user's role | All users, courses, sessions, records, analytics |
+| **Administrator** | Only the course reps registered under them (enable/disable) | Only their own course reps, and the courses / sessions / records / analytics owned by those reps. **Cannot see the super admin or other admins.** |
+| **Course Representative** | Their own courses & sessions | Only their own courses, sessions, records, analytics |
+
+- A course rep **registers under a specific admin** by supplying that admin's
+  username or email at sign-up (`admin_identifier`); the link is stored in
+  `users.admin_id`.
+- Data scoping is centralised in `visible_owner_ids(user)`
+  (`app/utils/decorators.py`): super admin → unrestricted, admin → self + reps,
+  course rep → self. Every course/session/record/analytics query is filtered through it.
+- Only a super admin can change roles. An admin can only enable/disable the reps
+  beneath them.
+
 ## Database schema
 
 ```
-users (id, full_name, username⋆, email⋆, password_hash, role, is_active, created_at)
+users (id, full_name, username⋆, email⋆, password_hash, role, is_active,
+       admin_id→users (the admin a course rep belongs to), created_at)
    │ 1─* owns
 courses (id, course_code, course_name, semester, owner_id→users, created_at)
    │ 1─*                         │ 1─*
@@ -144,7 +165,14 @@ npm run dev               # serves http://localhost:5173 (proxies /api to :5000)
 ```
 
 Open http://localhost:5173. Demo logins (after `seed.py`):
-`superadmin / Admin@1234` and `courserep / Rep@12345`.
+`superadmin / Admin@1234`, `admin / Admin@1234`, and
+`courserep / Rep@12345` (the course rep is registered under `admin`).
+
+> **Upgrading an existing local database:** this change adds the `users.admin_id`
+> column. `db.create_all()` does not alter existing tables, so for local SQLite
+> dev delete the old DB (`backend/quick_attendance.db` / `backend/instance/*.db`)
+> and re-run `python seed.py`. In production, generate a migration with
+> `flask db migrate` / `flask db upgrade`.
 
 > Geolocation requires a **secure context**. `localhost` is treated as secure
 > by browsers, so testing works locally. In production you must serve over HTTPS.

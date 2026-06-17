@@ -37,8 +37,18 @@ class User(db.Model):
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=utcnow, nullable=False)
 
+    # The administrator a course rep is registered under (self-referential).
+    # Null for admins and the super admin.
+    admin_id = db.Column(
+        db.Integer, db.ForeignKey("users.id"), nullable=True, index=True
+    )
+    admin = db.relationship(
+        "User", remote_side=[id], backref="course_reps"
+    )
+
     courses = db.relationship(
-        "Course", back_populates="owner", cascade="all, delete-orphan"
+        "Course", back_populates="owner", cascade="all, delete-orphan",
+        foreign_keys="Course.owner_id",
     )
 
     # ---- password helpers (Argon2) ----
@@ -59,5 +69,7 @@ class User(db.Model):
             "email": self.email,
             "role": self.role,
             "is_active": self.is_active,
+            "admin_id": self.admin_id,
+            "admin_username": self.admin.username if self.admin else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

@@ -3,7 +3,12 @@ from flask import Blueprint, jsonify, request
 
 from app.extensions import db
 from app.models import Course, CourseEnrollment, Role, Student
-from app.utils.decorators import current_user, roles_required
+from app.utils.decorators import (
+    can_view_owner,
+    current_user,
+    roles_required,
+    visible_owner_ids,
+)
 
 courses_bp = Blueprint("courses", __name__, url_prefix="/api/courses")
 
@@ -12,8 +17,8 @@ def _owned_course_or_none(course_id: int, user):
     course = db.session.get(Course, course_id)
     if course is None:
         return None
-    # Admins can manage any course; course reps only their own.
-    if user.role in Role.ADMINS or course.owner_id == user.id:
+    # Admins can manage courses owned by reps under them; reps only their own.
+    if can_view_owner(user, course.owner_id):
         return course
     return None
 
@@ -23,8 +28,9 @@ def _owned_course_or_none(course_id: int, user):
 def list_courses():
     user = current_user()
     query = Course.query
-    if user.role not in Role.ADMINS:
-        query = query.filter_by(owner_id=user.id)
+    owner_ids = visible_owner_ids(user)
+    if owner_ids is not None:
+        query = query.filter(Course.owner_id.in_(owner_ids))
     semester = request.args.get("semester")
     if semester:
         query = query.filter_by(semester=semester)

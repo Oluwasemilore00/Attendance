@@ -27,22 +27,34 @@ def run():
             print("Seed data already present. Skipping.")
             return
 
-        admin = User(
+        super_admin = User(
             full_name="Super Admin",
             username="superadmin",
             email="admin@quickattendance.test",
             role=Role.SUPER_ADMIN,
         )
-        admin.set_password("Admin@1234")
+        super_admin.set_password("Admin@1234")
 
+        admin = User(
+            full_name="Dept Admin",
+            username="admin",
+            email="deptadmin@quickattendance.test",
+            role=Role.ADMIN,
+        )
+        admin.set_password("Admin@1234")
+        db.session.add_all([super_admin, admin])
+        db.session.flush()
+
+        # Course rep registered under the department admin.
         rep = User(
             full_name="Jane Course Rep",
             username="courserep",
             email="rep@quickattendance.test",
             role=Role.COURSE_REP,
+            admin_id=admin.id,
         )
         rep.set_password("Rep@12345")
-        db.session.add_all([admin, rep])
+        db.session.add(rep)
         db.session.flush()
 
         course = Course(
@@ -100,7 +112,8 @@ def run():
         db.session.commit()
         print("Seed complete.")
         print("  Super admin -> superadmin / Admin@1234")
-        print("  Course rep  -> courserep  / Rep@12345")
+        print("  Admin       -> admin      / Admin@1234")
+        print("  Course rep  -> courserep  / Rep@12345  (under 'admin')")
         print(f"  Demo attendance link token: {session.public_token}")
 
 

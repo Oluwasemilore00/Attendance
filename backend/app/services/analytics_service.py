@@ -78,11 +78,15 @@ def course_report(course_id: int) -> dict:
     }
 
 
-def semester_report(semester: str, owner_id: int | None = None) -> dict:
-    """Overall per-student attendance across all courses in a semester."""
+def semester_report(semester: str, owner_ids=None) -> dict:
+    """Overall per-student attendance across all courses in a semester.
+
+    ``owner_ids`` is either None (no restriction) or a list of course-owner
+    ids the caller is allowed to see.
+    """
     query = Course.query.filter_by(semester=semester)
-    if owner_id is not None:
-        query = query.filter_by(owner_id=owner_id)
+    if owner_ids is not None:
+        query = query.filter(Course.owner_id.in_(owner_ids))
     courses = query.all()
 
     # Map student -> (attended, held) accumulators.
@@ -131,11 +135,15 @@ def semester_report(semester: str, owner_id: int | None = None) -> dict:
     }
 
 
-def course_analytics(owner_id: int | None = None) -> dict:
-    """Aggregate analytics across courses (averages, highest, lowest)."""
+def course_analytics(owner_ids=None) -> dict:
+    """Aggregate analytics across courses (averages, highest, lowest).
+
+    ``owner_ids`` is either None (no restriction) or a list of allowed
+    course-owner ids.
+    """
     query = Course.query
-    if owner_id is not None:
-        query = query.filter_by(owner_id=owner_id)
+    if owner_ids is not None:
+        query = query.filter(Course.owner_id.in_(owner_ids))
     courses = query.all()
 
     course_stats = []

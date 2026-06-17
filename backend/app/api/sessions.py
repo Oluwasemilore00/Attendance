@@ -5,7 +5,12 @@ from flask import Blueprint, jsonify, request
 
 from app.extensions import db
 from app.models import AttendanceSession, Course, Role
-from app.utils.decorators import current_user, roles_required
+from app.utils.decorators import (
+    can_view_owner,
+    current_user,
+    roles_required,
+    visible_owner_ids,
+)
 from app.utils.qr import generate_qr_data_uri
 
 sessions_bp = Blueprint("sessions", __name__, url_prefix="/api/sessions")
@@ -31,8 +36,9 @@ def _parse_dt(value: str):
 def list_sessions():
     user = current_user()
     query = AttendanceSession.query.join(Course)
-    if user.role not in Role.ADMINS:
-        query = query.filter(Course.owner_id == user.id)
+    owner_ids = visible_owner_ids(user)
+    if owner_ids is not None:
+        query = query.filter(Course.owner_id.in_(owner_ids))
     if request.args.get("active") == "true":
         query = query.filter(AttendanceSession.is_open.is_(True))
     sessions = query.order_by(AttendanceSession.created_at.desc()).all()
@@ -47,9 +53,7 @@ def create_session():
     data = request.get_json(silent=True) or {}
 
     course = db.session.get(Course, data.get("course_id") or 0)
-    if course is None or (
-        user.role not in Role.ADMINS and course.owner_id != user.id
-    ):
+    if course is None or not can_view_owner(user, course.owner_id):
         return jsonify({"error": "Course not found."}), 404
 
     start_time = _parse_dt(data.get("start_time"))
@@ -98,9 +102,7 @@ def create_session():
 def get_session(session_id):
     user = current_user()
     session = db.session.get(AttendanceSession, session_id)
-    if session is None or (
-        user.role not in Role.ADMINS and session.course.owner_id != user.id
-    ):
+    if session is None or not can_view_owner(user, session.course.owner_id):
         return jsonify({"error": "Session not found."}), 404
     base = _frontend_base()
     payload = session.to_dict(base)
@@ -113,9 +115,7 @@ def get_session(session_id):
 def close_session(session_id):
     user = current_user()
     session = db.session.get(AttendanceSession, session_id)
-    if session is None or (
-        user.role not in Role.ADMINS and session.course.owner_id != user.id
-    ):
+    if session is None or not can_view_owner(user, session.course.owner_id):
         return jsonify({"error": "Session not found."}), 404
     session.is_open = False
     db.session.commit()
