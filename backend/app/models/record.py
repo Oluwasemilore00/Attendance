@@ -42,10 +42,13 @@ class AttendanceRecord(db.Model):
     student = db.relationship("Student", back_populates="records")
 
     def to_dict(self) -> dict:
+        course = self.session.course if self.session else None
         return {
             "id": self.id,
             "session_id": self.session_id,
-            "course_id": self.session.course_id if self.session else None,
+            "course_id": course.id if course else None,
+            "course_code": course.course_code if course else None,
+            "course_name": course.course_name if course else None,
             "student_id": self.student_id,
             "matric_number": self.student.matric_number if self.student else None,
             "student_name": self.student.full_name if self.student else None,
