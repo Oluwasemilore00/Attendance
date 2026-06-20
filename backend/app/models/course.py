@@ -32,12 +32,20 @@ class Course(db.Model):
     )
 
     def to_dict(self) -> dict:
+        owner = self.owner
+        admin = owner.admin if owner else None
         return {
             "id": self.id,
             "course_code": self.course_code,
             "course_name": self.course_name,
             "semester": self.semester,
             "owner_id": self.owner_id,
+            "owner_full_name": owner.full_name if owner else None,
+            "owner_username": owner.username if owner else None,
+            "owner_role": owner.role if owner else None,
+            "owner_admin_id": owner.admin_id if owner else None,
+            "owner_admin_name": admin.full_name if admin else None,
+            "owner_admin_username": admin.username if admin else None,
             "enrolled_count": len(self.enrollments),
             "session_count": len(self.sessions),
         }

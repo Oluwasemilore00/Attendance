@@ -49,12 +49,21 @@ class AttendanceSession(db.Model):
         return self.start_time <= now <= self.end_time
 
     def to_dict(self, base_url: str = "") -> dict:
+        owner = self.course.owner if self.course else None
+        admin = owner.admin if owner else None
         return {
             "id": self.id,
             "public_token": self.public_token,
             "course_id": self.course_id,
             "course_code": self.course.course_code if self.course else None,
             "course_name": self.course.course_name if self.course else None,
+            "owner_id": owner.id if owner else None,
+            "owner_full_name": owner.full_name if owner else None,
+            "owner_username": owner.username if owner else None,
+            "owner_role": owner.role if owner else None,
+            "owner_admin_id": owner.admin_id if owner else None,
+            "owner_admin_name": admin.full_name if admin else None,
+            "owner_admin_username": admin.username if admin else None,
             "title": self.title,
             "session_date": self.session_date.isoformat()
             if self.session_date else None,

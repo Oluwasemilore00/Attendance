@@ -854,6 +854,40 @@ tbody tr:hover { background: #EEF2FF; transition: background 0.12s; }
 }
 .avatar-upload-btn:hover { background: var(--primary-dark); }
 
+/* ── Group browser (admin/rep drill-down) ───────────────────── */
+.group-browser-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.group-browser-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.12s;
+}
+.group-browser-card:hover {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  transform: translateX(4px);
+}
+.group-browser-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 17px;
+  color: #fff;
+  flex-shrink: 0;
+}
+.group-browser-name { font-weight: 600; font-size: 14px; }
+.group-browser-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
 /* ── Mobile top bar (hidden on desktop) ─────────────────────── */
 .topbar {
   display: none;

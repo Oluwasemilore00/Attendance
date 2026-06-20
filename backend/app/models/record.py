@@ -43,6 +43,8 @@ class AttendanceRecord(db.Model):
 
     def to_dict(self) -> dict:
         course = self.session.course if self.session else None
+        owner = course.owner if course else None
+        admin = owner.admin if owner else None
         return {
             "id": self.id,
             "session_id": self.session_id,
@@ -51,6 +53,12 @@ class AttendanceRecord(db.Model):
             "course_id": course.id if course else None,
             "course_code": course.course_code if course else None,
             "course_name": course.course_name if course else None,
+            "owner_id": owner.id if owner else None,
+            "owner_full_name": owner.full_name if owner else None,
+            "owner_username": owner.username if owner else None,
+            "owner_admin_id": owner.admin_id if owner else None,
+            "owner_admin_name": admin.full_name if admin else None,
+            "owner_admin_username": admin.username if admin else None,
             "student_id": self.student_id,
             "matric_number": self.student.matric_number if self.student else None,
             "student_name": self.student.full_name if self.student else None,

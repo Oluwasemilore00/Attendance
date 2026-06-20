@@ -19,6 +19,17 @@ def _scope():
     return visible_owner_ids(current_user())
 
 
+def _scoped_ids(owner_ids):
+    """Narrow scope to a single owner_id from the request query param."""
+    owner_id = request.args.get("owner_id", type=int)
+    if not owner_id:
+        return owner_ids
+    if owner_ids is not None and owner_id not in owner_ids:
+        from flask import abort
+        abort(403)
+    return [owner_id]
+
+
 @analytics_bp.get("/course/<int:course_id>")
 @roles_required(*Role.ALL)
 def course(course_id):
@@ -35,13 +46,13 @@ def course(course_id):
 @roles_required(*Role.ALL)
 def semester():
     sem = request.args.get("semester", "2024/2025-1")
-    return jsonify(analytics_service.semester_report(sem, owner_ids=_scope()))
+    return jsonify(analytics_service.semester_report(sem, owner_ids=_scoped_ids(_scope())))
 
 
 @analytics_bp.get("/courses")
 @roles_required(*Role.ALL)
 def courses_overview():
-    return jsonify(analytics_service.course_analytics(owner_ids=_scope()))
+    return jsonify(analytics_service.course_analytics(owner_ids=_scoped_ids(_scope())))
 
 
 @analytics_bp.get("/eligibility")
