@@ -854,31 +854,192 @@ tbody tr:hover { background: #EEF2FF; transition: background 0.12s; }
 }
 .avatar-upload-btn:hover { background: var(--primary-dark); }
 
-/* ── Responsive ─────────────────────────────────────────────── */
-@media (max-width: 1024px) {
-  .content { padding: 24px; }
-  .auth-panel { flex: 0 0 38%; padding: 48px 40px; }
+/* ── Mobile top bar (hidden on desktop) ─────────────────────── */
+.topbar {
+  display: none;
+}
+.sidebar-close-btn {
+  display: none;
+}
+.sidebar-backdrop {
+  display: none;
 }
 
-@media (max-width: 760px) {
-  .app-shell { flex-direction: column; }
+/* ── Responsive ─────────────────────────────────────────────── */
+
+/* Large tablet / small desktop */
+@media (max-width: 1100px) {
+  .content { padding: 28px 28px; }
+  .auth-panel { flex: 0 0 38%; padding: 48px 36px; }
+  .auth-panel-title { font-size: 28px; }
+}
+
+/* Tablet portrait / large phones */
+@media (max-width: 768px) {
+  /* Show mobile top bar */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 56px;
+    background: var(--sidebar-bg);
+    padding: 0 16px;
+    z-index: 400;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    flex-shrink: 0;
+  }
+  .topbar-hamburger {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    padding: 6px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .topbar-hamburger:hover { background: rgba(255,255,255,0.10); }
+  .topbar .brand { font-size: 14px; }
+  .topbar .brand span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Sidebar becomes a drawer */
   .sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0;
+    height: 100vh;
+    width: 270px;
+    transform: translateX(-100%);
+    transition: transform 0.26s cubic-bezier(0.4,0,0.2,1);
+    z-index: 500;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
-  .sidebar nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-    padding: 10px 12px;
+  .sidebar.open { transform: translateX(0); }
+
+  /* Close (X) button inside drawer */
+  .sidebar-close-btn {
+    display: grid;
+    place-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    margin-left: auto;
+    min-width: 36px;
+    min-height: 36px;
   }
-  .nav-item { padding: 8px 10px; font-size: 12px; }
-  .nav-section-label { display: none; }
-  .content { padding: 18px 16px; }
+  .sidebar-close-btn:hover { background: rgba(255,255,255,0.10); }
+
+  /* Override sidebar-top to be a row */
+  .sidebar-top {
+    display: flex;
+    align-items: center;
+    padding: 16px 16px 16px 16px;
+  }
+  .sidebar-top .brand { flex: 1; font-size: 15px; }
+
+  /* Backdrop overlay */
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,0.55);
+    backdrop-filter: blur(2px);
+    z-index: 450;
+    animation: fadeIn 0.2s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* Content shifts down for fixed topbar */
+  .content {
+    padding: 80px 16px 24px;
+  }
+
+  /* Cards */
+  .card { padding: 18px 16px; }
+
+  /* Page head */
+  .page-head h1 { font-size: 20px; }
+  .page-head { margin-bottom: 20px; gap: 10px; }
+
+  /* Grids */
+  .grid.cols-4 { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .grid.cols-3 { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid.cols-2 { grid-template-columns: 1fr; gap: 12px; }
+
+  /* Auth */
   .auth-shell { flex-direction: column; }
-  .auth-panel { flex: 0 0 auto; padding: 36px 28px; }
+  .auth-panel {
+    flex: 0 0 auto;
+    padding: 32px 24px;
+    min-height: auto;
+  }
   .auth-panel-features { display: none; }
-  .hero h1 { font-size: 34px; -webkit-text-fill-color: #fff; background: none; }
-  .grid.cols-4 { grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); }
+  .auth-panel-title { font-size: 24px; margin-bottom: 8px; }
+  .auth-panel-text { font-size: 13px; }
+  .auth-form-area { padding: 32px 20px; align-items: flex-start; }
+  .auth-form-box { max-width: 100%; }
+
+  /* Landing */
+  .hero { padding: 60px 6% 70px; }
+  .hero h1 { font-size: 36px; -webkit-text-fill-color: #fff; background: none; }
+  .hero p { font-size: 16px; }
+  .landing-nav { padding: 18px 6%; }
+  .features { padding: 10px 6% 60px; grid-template-columns: 1fr 1fr; }
+
+  /* Field rows stack */
+  .field-row { flex-direction: column; }
+  .field-row > div { min-width: 0; }
+
+  /* Tables — ensure horizontal scroll on narrow screens */
+  .table-wrap { -webkit-overflow-scrolling: touch; }
+
+  /* Stat card values slightly smaller */
+  .stat-value { font-size: 28px; }
+
+  /* Attend card */
+  .attend-card { padding: 24px 20px; }
+
+  /* Payment modal */
+  .payment-plans { grid-template-columns: 1fr; }
+  .payment-modal { padding: 22px 18px; }
+
+  /* Avatar upload stacks */
+  .avatar-upload { flex-direction: column; align-items: flex-start; gap: 16px; }
+}
+
+/* Small phones (iPhone SE, Galaxy A series) */
+@media (max-width: 480px) {
+  .topbar { height: 52px; }
+  .content { padding: 68px 12px 20px; }
+  .card { padding: 14px 12px; }
+  .page-head h1 { font-size: 18px; }
+
+  .grid.cols-4 { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid.cols-3 { grid-template-columns: 1fr; }
+
+  .stat-value { font-size: 24px; }
+  .stat-card { padding: 16px; }
+
+  .hero h1 { font-size: 28px; }
+  .hero p { font-size: 14px; }
+  .features { grid-template-columns: 1fr; gap: 14px; }
+
+  .auth-panel { padding: 24px 18px; }
+  .auth-panel-title { font-size: 20px; }
+
+  .btn { padding: 10px 16px; font-size: 13px; }
+  .btn.small { padding: 6px 10px; font-size: 11px; }
+
+  /* Touch-friendly table cells */
+  td, th { padding: 10px 10px; }
+
+  /* Payment modal full-width */
+  .payment-modal { border-radius: 16px; padding: 18px 14px; }
+  .attend-card { padding: 20px 16px; }
 }
