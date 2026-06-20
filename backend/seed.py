@@ -23,17 +23,9 @@ from app.models import (
 def run():
     app = create_app()
     with app.app_context():
-        if User.query.filter_by(username="superadmin").first():
+        if User.query.filter_by(username="admin").first():
             print("Seed data already present. Skipping.")
             return
-
-        super_admin = User(
-            full_name="Super Admin",
-            username="superadmin",
-            email="admin@quickattendance.test",
-            role=Role.SUPER_ADMIN,
-        )
-        super_admin.set_password("Admin@1234")
 
         admin = User(
             full_name="Dept Admin",
@@ -42,7 +34,7 @@ def run():
             role=Role.ADMIN,
         )
         admin.set_password("Admin@1234")
-        db.session.add_all([super_admin, admin])
+        db.session.add(admin)
         db.session.flush()
 
         # Course rep registered under the department admin.
@@ -111,10 +103,10 @@ def run():
 
         db.session.commit()
         print("Seed complete.")
-        print("  Super admin -> superadmin / Admin@1234")
-        print("  Admin       -> admin      / Admin@1234")
-        print("  Course rep  -> courserep  / Rep@12345  (under 'admin')")
+        print("  Admin      -> admin     / Admin@1234")
+        print("  Course rep -> courserep / Rep@12345  (under 'admin')")
         print(f"  Demo attendance link token: {session.public_token}")
+        print("\nRun 'python create_superadmin.py' to create your super admin account.")
 
 
 if __name__ == "__main__":
