@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "./context/AuthContext";
 import Layout from "./components/Layout";
 import PaymentModal from "./components/PaymentModal";
+import ChangeAdminModal from "./components/ChangeAdminModal";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -20,7 +21,14 @@ function Protected({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="center">Loading…</div>;
   if (!user) return <Navigate to="/login" replace />;
-  return <Layout>{children}</Layout>;
+  // Course rep whose admin was deleted must pick a new one before continuing
+  const needsAdmin = user.role === "course_rep" && !user.admin_id;
+  return (
+    <Layout>
+      {needsAdmin && <ChangeAdminModal blocking />}
+      {children}
+    </Layout>
+  );
 }
 
 export default function App() {

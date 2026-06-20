@@ -1,5 +1,6 @@
 """User account settings + administration endpoints."""
 from flask import Blueprint, jsonify, request
+from sqlalchemy import text
 
 from app.extensions import db
 from app.models import Role, SystemSetting, User
@@ -91,6 +92,54 @@ def change_password():
     user.set_password(new)
     db.session.commit()
     return jsonify({"message": "Password updated."})
+
+
+# ---- account deletion ----
+@users_bp.delete("/me")
+@roles_required(*Role.ALL)
+def delete_account():
+    user = current_user()
+    data = request.get_json(silent=True) or {}
+
+    if not user.check_password(data.get("password") or ""):
+        return jsonify({"error": "Incorrect password."}), 403
+
+    if user.role == Role.SUPER_ADMIN:
+        count = User.query.filter_by(role=Role.SUPER_ADMIN).count()
+        if count <= 1:
+            return jsonify({"error": "Cannot delete the only super admin account. Create another super admin first."}), 400
+
+    if user.role == Role.ADMIN:
+        # Orphan course reps so they can reassign themselves; keep them active
+        with db.engine.connect() as conn:
+            conn.execute(text("UPDATE users SET admin_id=NULL WHERE admin_id=:aid"), {"aid": user.id})
+            conn.commit()
+
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({"message": "Account deleted."})
+
+
+# ---- admin picker (used by course reps to choose/change admin) ----
+@users_bp.get("/admins")
+@roles_required(*Role.ALL)
+def list_admins():
+    admins = User.query.filter_by(role=Role.ADMIN, is_active=True).order_by(User.full_name).all()
+    return jsonify({"admins": [{"id": u.id, "full_name": u.full_name, "username": u.username} for u in admins]})
+
+
+@users_bp.patch("/me/admin")
+@roles_required(Role.COURSE_REP)
+def change_admin():
+    user = current_user()
+    data = request.get_json(silent=True) or {}
+    admin_id = data.get("admin_id")
+    admin = User.query.filter_by(id=admin_id, role=Role.ADMIN, is_active=True).first()
+    if not admin:
+        return jsonify({"error": "Admin not found or inactive."}), 404
+    user.admin_id = admin.id
+    db.session.commit()
+    return jsonify({"user": user.to_dict()})
 
 
 # ---- administration ----

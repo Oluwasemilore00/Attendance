@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
-import { Save, Home, Camera, Zap, ExternalLink } from "lucide-react";
+import { Save, Home, Camera, Zap, ExternalLink, Trash2, UserCog } from "lucide-react";
+import ChangeAdminModal from "../components/ChangeAdminModal";
 
 function Section({ title, subtitle, children }) {
   return (
@@ -27,9 +28,14 @@ export default function Settings() {
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarBusy, setAvatarBusy] = useState(false);
   const [portalBusy, setPortalBusy] = useState(false);
+  const [showChangeAdmin, setShowChangeAdmin] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteBusy, setDeleteBusy] = useState(false);
   const initials = user?.full_name?.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase() || "?";
 
   const isAdmin = user && ["super_admin", "admin"].includes(user.role);
+  const isRep = user?.role === "course_rep";
 
   useEffect(() => {
     if (user) {
@@ -120,6 +126,18 @@ export default function Settings() {
       flash("error", err.response?.data?.error || "Could not open billing portal.");
     } finally {
       setPortalBusy(false);
+    }
+  };
+
+  const deleteAccount = async () => {
+    setDeleteBusy(true);
+    try {
+      await api.delete("/api/users/me", { data: { password: deletePassword } });
+      localStorage.clear();
+      window.location.href = "/login";
+    } catch (err) {
+      flash("error", err.response?.data?.error || "Failed to delete account.");
+      setDeleteBusy(false);
     }
   };
 
@@ -272,6 +290,84 @@ export default function Settings() {
           </Section>
         )}
       </div>
+
+      {/* Change admin — course reps only */}
+      {isRep && (
+        <div className="card">
+          <div className="card-header">
+            <div>
+              <div className="card-title">Your admin</div>
+              <div className="card-subtitle">
+                Currently under: <strong>{user.admin_username || "—"}</strong>
+              </div>
+            </div>
+          </div>
+          <div style={{ padding: "4px 0 8px" }}>
+            <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 14 }}>
+              If your admin has changed or you were assigned to the wrong one, you can switch here.
+            </p>
+            <button className="btn ghost" onClick={() => setShowChangeAdmin(true)}>
+              <UserCog size={15} /> Change admin
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Danger zone */}
+      <div className="card" style={{ border: "1px solid var(--bad, #DC2626)" }}>
+        <div className="card-header">
+          <div className="card-title" style={{ color: "var(--bad, #DC2626)" }}>Danger zone</div>
+        </div>
+        {!deleteConfirm ? (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 14 }}>Delete account</div>
+              <div style={{ fontSize: 13, color: "var(--muted)" }}>
+                {user?.role === "admin"
+                  ? "Your account will be deleted and your course reps will be prompted to select a new admin."
+                  : "Permanently deletes your account. This cannot be undone."}
+              </div>
+            </div>
+            <button className="btn danger" onClick={() => setDeleteConfirm(true)}>
+              <Trash2 size={14} /> Delete account
+            </button>
+          </div>
+        ) : (
+          <div>
+            <div className="alert error" style={{ marginBottom: 14 }}>
+              This will permanently delete your account.
+              {user?.role === "admin" && " Your course reps will lose their admin assignment and be prompted to pick a new one."}
+              {" "}This cannot be undone.
+            </div>
+            <div className="form-group" style={{ maxWidth: 340 }}>
+              <label>Enter your password to confirm</label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+              <button
+                className="btn danger"
+                disabled={!deletePassword || deleteBusy}
+                onClick={deleteAccount}
+              >
+                <Trash2 size={14} /> {deleteBusy ? "Deleting…" : "Yes, delete my account"}
+              </button>
+              <button className="btn ghost" onClick={() => { setDeleteConfirm(false); setDeletePassword(""); }}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {showChangeAdmin && (
+        <ChangeAdminModal onClose={() => setShowChangeAdmin(false)} />
+      )}
     </div>
   );
 }
