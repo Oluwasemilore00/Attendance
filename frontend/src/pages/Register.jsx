@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { QrCode, Users, CheckCircle } from "lucide-react";
 import Logo from "../components/Logo";
+import PasswordInput from "../components/PasswordInput";
 
 export default function Register() {
   const { register } = useAuth();
@@ -93,11 +94,11 @@ export default function Register() {
             <div className="field-row">
               <div className="form-group">
                 <label>Password</label>
-                <input type="password" value={form.password} onChange={upd("password")} placeholder="••••••••" required />
+                <PasswordInput value={form.password} onChange={upd("password")} required />
               </div>
               <div className="form-group">
                 <label>Confirm Password</label>
-                <input type="password" value={form.confirm_password} onChange={upd("confirm_password")} placeholder="••••••••" required />
+                <PasswordInput value={form.confirm_password} onChange={upd("confirm_password")} required />
               </div>
             </div>
 

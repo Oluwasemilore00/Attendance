@@ -3,6 +3,7 @@ import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { Save, Home, Camera, Zap, ExternalLink, Trash2, UserCog } from "lucide-react";
 import ChangeAdminModal from "../components/ChangeAdminModal";
+import PasswordInput from "../components/PasswordInput";
 
 function Section({ title, subtitle, children }) {
   return (
@@ -261,15 +262,15 @@ export default function Settings() {
           <form onSubmit={savePassword}>
             <div className="form-group">
               <label>Current password</label>
-              <input type="password" value={pw.current_password} onChange={(e) => setPw({ ...pw, current_password: e.target.value })} placeholder="••••••••" />
+              <PasswordInput value={pw.current_password} onChange={(e) => setPw({ ...pw, current_password: e.target.value })} />
             </div>
             <div className="form-group">
               <label>New password</label>
-              <input type="password" value={pw.new_password} onChange={(e) => setPw({ ...pw, new_password: e.target.value })} placeholder="••••••••" />
+              <PasswordInput value={pw.new_password} onChange={(e) => setPw({ ...pw, new_password: e.target.value })} />
             </div>
             <div className="form-group">
               <label>Confirm new password</label>
-              <input type="password" value={pw.confirm_password} onChange={(e) => setPw({ ...pw, confirm_password: e.target.value })} placeholder="••••••••" />
+              <PasswordInput value={pw.confirm_password} onChange={(e) => setPw({ ...pw, confirm_password: e.target.value })} />
             </div>
             <button className="btn" style={{ marginTop: 4 }}><Save size={15} /> Change password</button>
           </form>
@@ -341,13 +342,7 @@ export default function Settings() {
             </div>
             <div className="form-group" style={{ maxWidth: 340 }}>
               <label>Enter your password to confirm</label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                value={deletePassword}
-                onChange={(e) => setDeletePassword(e.target.value)}
-                autoFocus
-              />
+              <PasswordInput value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} autoFocus />
             </div>
             <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
               <button

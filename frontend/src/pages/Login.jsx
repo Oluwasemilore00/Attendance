@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { MapPin, ShieldCheck, BarChart2 } from "lucide-react";
 import Logo from "../components/Logo";
+import PasswordInput from "../components/PasswordInput";
 
 export default function Login() {
   const { login } = useAuth();
@@ -74,13 +75,7 @@ export default function Login() {
 
             <div className="form-group">
               <label>Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-              />
+              <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
 
             <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 500, fontSize: 13, textTransform: "none", letterSpacing: 0, color: "var(--ink)" }}>
