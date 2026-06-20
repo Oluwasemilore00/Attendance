@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-Command stripe -ErrorAction SilentlyContinue; Get-ChildItem \"$env:LOCALAPPDATA\\\\Microsoft\\\\WinGet\\\\Packages\" -Recurse -Filter \"stripe.exe\" -ErrorAction SilentlyContinue | Select-Object -First 3 FullName)",
+      "PowerShell(Get-ChildItem \"$env:LOCALAPPDATA\\\\Microsoft\\\\WinGet\\\\Packages\\\\Stripe.StripeCli_Microsoft.Winget.Source_8wekyb3d8bbwe\" -Recurse -Filter \"stripe.exe\" | Select-Object FullName)",
+      "PowerShell(Get-ChildItem \"$env:LOCALAPPDATA\\\\Microsoft\\\\WinGet\\\\Packages\\\\Stripe.StripeCli_Microsoft.Winget.Source_8wekyb3d8bbwe\" -Recurse -Filter \"stripe.exe\" | Select-Object -ExpandProperty FullName)",
+      "PowerShell($profileScript = \"Set-Alias stripe '$env:USERPROFILE\\\\stripe.cmd'\"; $profilePath = $PROFILE; if \\(!\\(Test-Path $profilePath\\)\\) { New-Item -Path $profilePath -ItemType File -Force | Out-Null }; $existing = Get-Content $profilePath -ErrorAction SilentlyContinue; if \\($existing -notcontains $profileScript\\) { Add-Content -Path $profilePath -Value $profileScript }; echo \"Profile updated at $profilePath\")",
+      "PowerShell(Get-Command git -ErrorAction SilentlyContinue)",
+      "PowerShell(& \"C:\\\\Program Files\\\\Git\\\\bin\\\\git.exe\" --version 2>$null)",
+      "PowerShell(& \"C:\\\\Program Files \\(x86\\)\\\\Git\\\\bin\\\\git.exe\" --version 2>$null)",
+      "PowerShell(winget install Git.Git --accept-package-agreements --accept-source-agreements)",
+      "PowerShell($env:PATH += \";C:\\\\Program Files\\\\Git\\\\bin\"; git --version)",
+      "PowerShell($env:PATH += \";C:\\\\Program Files\\\\Git\\\\bin\"; cd \"c:\\\\Users\\\\adele\\\\OneDrive\\\\Desktop\\\\code\\\\Web Development\\\\quick-attendance\"; git init; git config user.email \"adelekansemilore21@gmail.com\"; git config user.name \"adele\")",
+      "PowerShell($env:PATH += \";C:\\\\Program Files\\\\Git\\\\bin\"; gh --version 2>$null; git credential-manager --version 2>$null; cmdkey /list | Select-String \"github\")",
+      "PowerShell($env:PATH += \";C:\\\\Program Files\\\\Git\\\\bin\"; cd \"c:\\\\Users\\\\adele\\\\OneDrive\\\\Desktop\\\\code\\\\Web Development\\\\quick-attendance\"; git add .; git status --short | head -30)",
+      "PowerShell($env:PATH += \";C:\\\\Program Files\\\\Git\\\\bin\"; cd \"c:\\\\Users\\\\adele\\\\OneDrive\\\\Desktop\\\\code\\\\Web Development\\\\quick-attendance\"; git status --short | Select-String \"\\\\.env\")",
+      "PowerShell($env:PATH += \";C:\\\\Program Files\\\\Git\\\\bin\"; cd \"c:\\\\Users\\\\adele\\\\OneDrive\\\\Desktop\\\\code\\\\Web Development\\\\quick-attendance\"; git commit -m \"Initial commit — Quick Attendance app with Stripe payments\")",
+      "PowerShell($env:PATH += \";C:\\\\Program Files\\\\Git\\\\bin\"; cd \"c:\\\\Users\\\\adele\\\\OneDrive\\\\Desktop\\\\code\\\\Web Development\\\\quick-attendance\"; git remote add origin https://github.com/Oluwasemilore00/quick-attendance.git; git branch -M main; git push -u origin main)",
+      "PowerShell($env:PATH += \";C:\\\\Program Files\\\\Git\\\\bin\"; cd \"c:\\\\Users\\\\adele\\\\OneDrive\\\\Desktop\\\\code\\\\Web Development\\\\quick-attendance\"; git remote set-url origin https://github.com/Oluwasemilore00/Attendance.git; git push -u origin main)"
+    ]
+  }
+}

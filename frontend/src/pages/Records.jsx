@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import api from "../api/client";
-import { Filter, CheckCircle, XCircle, Home, UserPlus } from "lucide-react";
+import { Filter, CheckCircle, XCircle, Home, UserPlus, ArrowLeft } from "lucide-react";
 
 const NOT_ENROLLED_REASON = "Student is not enrolled in this course.";
 
@@ -8,6 +9,11 @@ const AVATAR_COLORS = ["#4F46E5", "#059669", "#D97706", "#DB2777", "#0891B2", "#
 const getAvatarColor = (name) => AVATAR_COLORS[(name?.charCodeAt(0) || 0) % AVATAR_COLORS.length];
 
 export default function Records() {
+  const location = useLocation();
+  const urlParams = new URLSearchParams(location.search);
+  const ownerFilter = urlParams.get("owner") || "";
+  const ownerName = urlParams.get("owner_name") || "";
+
   const [records, setRecords] = useState([]);
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
@@ -16,9 +22,10 @@ export default function Records() {
     const params = {};
     if (status) params.status = status;
     if (search) params.search = search;
+    if (ownerFilter) params.owner_id = ownerFilter;
     api.get("/api/attendance/records", { params }).then((r) => setRecords(r.data.records));
   };
-  useEffect(() => { load(); }, [status]);
+  useEffect(() => { load(); }, [status, ownerFilter]);
 
   const setRecordStatus = async (id, newStatus) => {
     await api.patch(`/api/attendance/records/${id}`, { attendance_status: newStatus });
@@ -43,10 +50,25 @@ export default function Records() {
     <div>
       <div className="page-head">
         <div>
-          <h1>Attendance Records</h1>
-          <div className="breadcrumb"><Home size={13} /> Dashboard / Records</div>
+          <h1>{ownerName ? `${ownerName}'s Records` : "Attendance Records"}</h1>
+          <div className="breadcrumb">
+            <Home size={13} /> Dashboard /
+            {ownerName && <><Link to="/admin"> Administration</Link> /</>}
+            {" "}Records
+          </div>
         </div>
+        {ownerName && (
+          <Link to="/admin" className="btn ghost">
+            <ArrowLeft size={15} /> Back to Admin
+          </Link>
+        )}
       </div>
+
+      {ownerName && (
+        <div className="alert info" style={{ marginBottom: 16 }}>
+          Showing attendance records for <strong>{ownerName}</strong> only.
+        </div>
+      )}
 
       <div className="card">
         <div className="card-header">

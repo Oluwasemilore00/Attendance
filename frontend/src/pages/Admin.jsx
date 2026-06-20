@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
-import { UserCheck, UserX, Home, ShieldCheck } from "lucide-react";
+import { UserCheck, UserX, Home, ShieldCheck, ClipboardList } from "lucide-react";
 
 const AVATAR_COLORS = ["#4F46E5", "#059669", "#D97706", "#DB2777", "#0891B2", "#7C3AED"];
 const getAvatarColor = (name) => AVATAR_COLORS[(name?.charCodeAt(0) || 0) % AVATAR_COLORS.length];
@@ -54,7 +55,7 @@ export default function Admin() {
             <thead>
               <tr>
                 <th>Name</th><th>Username</th><th>Email</th>
-                <th>Role</th><th>Under admin</th><th>Active</th>
+                <th>Role</th><th>Under admin</th><th>Active</th><th></th>
               </tr>
             </thead>
             <tbody>
@@ -96,10 +97,20 @@ export default function Admin() {
                       {u.is_active ? <><UserX size={13} /> Disable</> : <><UserCheck size={13} /> Enable</>}
                     </button>
                   </td>
+                  <td>
+                    {u.id !== user.id && u.role !== "super_admin" && (
+                      <Link
+                        to={`/records?owner=${u.id}&owner_name=${encodeURIComponent(u.full_name)}`}
+                        className="btn ghost small"
+                      >
+                        <ClipboardList size={13} /> Records
+                      </Link>
+                    )}
+                  </td>
                 </tr>
               ))}
               {users.length === 0 && (
-                <tr><td colSpan="6" className="muted" style={{ textAlign: "center", padding: "28px 14px" }}>No users to show.</td></tr>
+                <tr><td colSpan="7" className="muted" style={{ textAlign: "center", padding: "28px 14px" }}>No users to show.</td></tr>
               )}
             </tbody>
           </table>

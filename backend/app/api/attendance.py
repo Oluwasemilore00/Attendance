@@ -181,12 +181,19 @@ def submit_attendance(token):
 @attendance_bp.get("/records")
 @roles_required(*Role.ALL)
 def list_records():
+    from app.models import Course
     user = current_user()
-    query = AttendanceRecord.query.join(AttendanceSession)
+    query = AttendanceRecord.query.join(AttendanceSession).join(Course)
     owner_ids = visible_owner_ids(user)
-    if owner_ids is not None:
-        from app.models import Course
-        query = query.join(Course).filter(Course.owner_id.in_(owner_ids))
+
+    # Optional: view records scoped to a specific owner (used by admin drill-down)
+    owner_id_filter = request.args.get("owner_id", type=int)
+    if owner_id_filter:
+        if owner_ids is not None and owner_id_filter not in owner_ids:
+            return jsonify({"error": "Access denied."}), 403
+        query = query.filter(Course.owner_id == owner_id_filter)
+    elif owner_ids is not None:
+        query = query.filter(Course.owner_id.in_(owner_ids))
 
     session_id = request.args.get("session_id", type=int)
     if session_id:
