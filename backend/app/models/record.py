@@ -46,6 +46,8 @@ class AttendanceRecord(db.Model):
         return {
             "id": self.id,
             "session_id": self.session_id,
+            "session_title": self.session.title if self.session else None,
+            "session_date": self.session.session_date.isoformat() if self.session and self.session.session_date else None,
             "course_id": course.id if course else None,
             "course_code": course.course_code if course else None,
             "course_name": course.course_name if course else None,
