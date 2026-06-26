@@ -1,35 +1,17 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import {
   BookOpen, CalendarCheck, Radio, TrendingUp,
-  Plus, Settings, ClipboardList, BarChart2, Home,
+  Plus, ClipboardList, BarChart2, Home,
 } from "lucide-react";
 
 export default function Dashboard() {
-  const { user, setUser } = useAuth();
-  const location = useLocation();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const [stats, setStats] = useState({ courses: 0, sessions: 0, active: 0 });
   const [overview, setOverview] = useState(null);
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
   const firstName = user?.full_name?.split(" ")[0] || "there";
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get("payment") === "success") {
-      const sessionId = params.get("session_id");
-      navigate("/dashboard", { replace: true });
-      if (sessionId) {
-        api.get(`/api/payments/verify-session?session_id=${sessionId}`)
-          .then((r) => { setUser(r.data.user); setPaymentSuccess(true); })
-          .catch((err) => {
-            console.error("verify-session failed:", err.response?.status, err.response?.data);
-          });
-      }
-    }
-  }, []);
 
   useEffect(() => {
     Promise.all([
@@ -55,12 +37,6 @@ export default function Dashboard() {
         </div>
         <Link to="/sessions" className="btn"><Plus size={16} /> New session</Link>
       </div>
-
-      {paymentSuccess && (
-        <div className="alert success" style={{ marginBottom: 16 }}>
-          Payment successful — you're now on Pro! Enjoy unlimited courses and sessions.
-        </div>
-      )}
 
       <div className="grid cols-4" style={{ marginBottom: 22 }}>
         <div className="stat-card blue">

@@ -43,9 +43,6 @@ class User(db.Model):
         db.Integer, db.ForeignKey("users.id"), nullable=True, index=True
     )
     profile_picture = db.Column(db.Text, nullable=True)
-    plan = db.Column(db.String(20), nullable=False, default="free")
-    stripe_customer_id = db.Column(db.String(120), nullable=True)
-    stripe_subscription_id = db.Column(db.String(120), nullable=True)
     admin = db.relationship(
         "User", remote_side=[id], backref="course_reps"
     )
@@ -76,6 +73,5 @@ class User(db.Model):
             "admin_id": self.admin_id,
             "admin_username": self.admin.username if self.admin else None,
             "profile_picture": self.profile_picture,
-            "plan": self.plan,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

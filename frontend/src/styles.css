@@ -702,8 +702,8 @@ tbody tr:hover { background: #EEF2FF; transition: background 0.12s; }
 .geo-status.err     { background: var(--bad-bg);         color: var(--bad); }
 .qr-img { width: 200px; height: 200px; border-radius: 12px; border: 1px solid var(--border); }
 
-/* ── Payment modal ──────────────────────────────────────────── */
-.payment-overlay {
+/* ── Modal overlay (used by ChangeAdminModal) ───────────────── */
+.modal-overlay {
   position: fixed; inset: 0;
   background: rgba(15,23,42,0.55);
   backdrop-filter: blur(4px);
@@ -711,101 +711,13 @@ tbody tr:hover { background: #EEF2FF; transition: background 0.12s; }
   display: flex; align-items: center; justify-content: center;
   padding: 16px;
 }
-.payment-modal {
+.modal-dialog {
   background: var(--bg-card);
   border-radius: 20px;
   width: 100%; max-width: 520px;
   box-shadow: var(--shadow-md);
   padding: 28px;
 }
-.payment-modal-header {
-  display: flex; align-items: flex-start; gap: 14px; margin-bottom: 24px;
-}
-.payment-modal-icon {
-  width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
-  background: var(--grad-blue); display: grid; place-items: center; color: #fff;
-}
-.payment-modal-title {
-  font-size: 18px; font-weight: 700; color: var(--ink); line-height: 1.2;
-}
-.payment-modal-sub {
-  font-size: 13px; color: var(--muted); margin-top: 3px;
-}
-.payment-modal-close {
-  margin-left: auto; background: none; border: none; cursor: pointer;
-  color: var(--muted); padding: 4px; border-radius: 6px; line-height: 0;
-  text-transform: none; letter-spacing: normal; font-size: inherit; font-weight: inherit;
-}
-.payment-modal-close:hover { background: var(--bg-page); color: var(--ink); }
-
-.payment-plans {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px;
-}
-.payment-plan {
-  border-radius: 14px; padding: 18px;
-  border: 2px solid var(--border);
-  position: relative;
-}
-.payment-plan.pro {
-  border-color: var(--primary);
-  background: var(--primary-light);
-}
-.payment-plan-badge {
-  position: absolute; top: -11px; left: 50%; transform: translateX(-50%);
-  background: var(--primary); color: #fff; font-size: 11px; font-weight: 600;
-  padding: 2px 12px; border-radius: 20px; white-space: nowrap;
-}
-.payment-plan-name {
-  font-size: 12px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.06em; color: var(--muted); margin-bottom: 6px;
-}
-.payment-plan.pro .payment-plan-name { color: var(--primary); }
-.payment-plan-price {
-  font-size: 22px; font-weight: 800; color: var(--ink); margin-bottom: 12px;
-}
-.payment-plan-features {
-  list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px;
-}
-.payment-plan-features li {
-  display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink);
-}
-.check-ok { color: var(--ok); flex-shrink: 0; }
-
-.payment-currency-row {
-  display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
-}
-.payment-currency-toggle {
-  display: flex; border: 1.5px solid var(--border); border-radius: 8px; overflow: hidden;
-}
-.payment-currency-toggle button {
-  padding: 5px 14px; font-size: 13px; font-weight: 600;
-  background: none; border: none; cursor: pointer; color: var(--muted);
-  text-transform: none; letter-spacing: normal;
-}
-.payment-currency-toggle button.active {
-  background: var(--primary); color: #fff;
-}
-
-.payment-cta {
-  width: 100%; justify-content: center; font-size: 15px;
-  padding: 13px; margin-bottom: 12px;
-}
-.payment-footer {
-  text-align: center; font-size: 12px; color: var(--muted);
-  display: flex; align-items: center; justify-content: center; gap: 5px; margin: 0;
-}
-
-/* ── Plan card (Settings) ───────────────────────────────────── */
-.plan-card {
-  margin-bottom: 24px;
-}
-.plan-card.plan-pro { border-left: 4px solid var(--primary); }
-.plan-card.plan-free { border-left: 4px solid var(--warn); }
-.plan-icon {
-  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
-  background: var(--grad-blue); display: grid; place-items: center; color: #fff;
-}
-.plan-card.plan-free .plan-icon { background: var(--grad-orange); }
 
 /* ── Avatar upload (Settings) ───────────────────────────────── */
 .avatar-upload {
@@ -1039,9 +951,8 @@ tbody tr:hover { background: #EEF2FF; transition: background 0.12s; }
   /* Attend card */
   .attend-card { padding: 24px 20px; }
 
-  /* Payment modal */
-  .payment-plans { grid-template-columns: 1fr; }
-  .payment-modal { padding: 22px 18px; }
+  /* Modal */
+  .modal-dialog { padding: 22px 18px; }
 
   /* Avatar upload stacks */
   .avatar-upload { flex-direction: column; align-items: flex-start; gap: 16px; }
@@ -1073,7 +984,6 @@ tbody tr:hover { background: #EEF2FF; transition: background 0.12s; }
   /* Touch-friendly table cells */
   td, th { padding: 10px 10px; }
 
-  /* Payment modal full-width */
-  .payment-modal { border-radius: 16px; padding: 18px 14px; }
+  .modal-dialog { border-radius: 16px; padding: 18px 14px; }
   .attend-card { padding: 20px 16px; }
 }

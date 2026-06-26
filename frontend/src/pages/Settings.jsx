@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
-import { Save, Home, Camera, Zap, ExternalLink, Trash2, UserCog } from "lucide-react";
+import { Save, Home, Camera, Trash2, UserCog } from "lucide-react";
 import ChangeAdminModal from "../components/ChangeAdminModal";
 import PasswordInput from "../components/PasswordInput";
 
@@ -28,7 +28,6 @@ export default function Settings() {
   const [threshold, setThreshold] = useState("");
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarBusy, setAvatarBusy] = useState(false);
-  const [portalBusy, setPortalBusy] = useState(false);
   const [showChangeAdmin, setShowChangeAdmin] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
@@ -118,17 +117,6 @@ export default function Settings() {
       flash("success", "Password changed.");
     } catch (err) { flash("error", err.response?.data?.details?.join(" ") || err.response?.data?.error || "Failed."); }
   };
-  const openPortal = async () => {
-    setPortalBusy(true);
-    try {
-      const res = await api.post("/api/payments/portal");
-      window.location.href = res.data.url;
-    } catch (err) {
-      flash("error", err.response?.data?.error || "Could not open billing portal.");
-    } finally {
-      setPortalBusy(false);
-    }
-  };
 
   const deleteAccount = async () => {
     setDeleteBusy(true);
@@ -204,32 +192,6 @@ export default function Settings() {
               )}
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Subscription card */}
-      <div className={`card plan-card ${user?.plan === "pro" ? "plan-pro" : "plan-free"}`}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div className="plan-icon"><Zap size={20} /></div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 16 }}>
-              {user?.plan === "pro" ? "Pro plan" : "Free plan"}
-            </div>
-            <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 2 }}>
-              {user?.plan === "pro"
-                ? "Unlimited courses and sessions — thanks for subscribing!"
-                : "You're on the free tier: 1 course, 1 session."}
-            </div>
-          </div>
-          {user?.plan === "pro" ? (
-            <button className="btn ghost" disabled={portalBusy} onClick={openPortal}>
-              <ExternalLink size={14} /> {portalBusy ? "Opening…" : "Manage subscription"}
-            </button>
-          ) : (
-            <button className="btn" onClick={() => window.dispatchEvent(new CustomEvent("upgrade-required"))}>
-              <Zap size={14} /> Upgrade to Pro
-            </button>
-          )}
         </div>
       </div>
 

@@ -10,7 +10,6 @@ export default function Login() {
   const navigate = useNavigate();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(true);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -77,11 +76,6 @@ export default function Login() {
               <label>Password</label>
               <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
-
-            <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 500, fontSize: 13, textTransform: "none", letterSpacing: 0, color: "var(--ink)" }}>
-              <input type="checkbox" style={{ width: "auto" }} checked={remember} onChange={(e) => setRemember(e.target.checked)} />
-              Remember me
-            </label>
 
             <button className="btn" style={{ width: "100%", marginTop: 20 }} disabled={busy}>
               {busy ? "Signing in…" : "Sign in"}

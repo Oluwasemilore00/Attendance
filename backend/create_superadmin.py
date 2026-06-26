@@ -52,7 +52,6 @@ def main():
             email=email,
             role=Role.SUPER_ADMIN,
             is_active=True,
-            plan="pro",
         )
         user.set_password(password)
         db.session.add(user)

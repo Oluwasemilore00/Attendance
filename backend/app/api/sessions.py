@@ -52,20 +52,6 @@ def create_session():
     user = current_user()
     data = request.get_json(silent=True) or {}
 
-    if user.plan == "free" and user.role != "super_admin":
-        from sqlalchemy import func
-        session_count = (
-            db.session.query(func.count(AttendanceSession.id))
-            .join(Course)
-            .filter(Course.owner_id == user.id)
-            .scalar()
-        )
-        if session_count >= 1:
-            return jsonify({
-                "error": "Free plan limit reached. Upgrade to Pro to create unlimited sessions.",
-                "upgrade_required": True,
-            }), 402
-
     course = db.session.get(Course, data.get("course_id") or 0)
     if course is None or not can_view_owner(user, course.owner_id):
         return jsonify({"error": "Course not found."}), 404

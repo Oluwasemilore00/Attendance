@@ -50,14 +50,6 @@ def create_course():
     if not code or not name:
         return jsonify({"error": "course_code and course_name are required."}), 400
 
-    if user.plan == "free" and user.role != "super_admin":
-        count = Course.query.filter_by(owner_id=user.id).count()
-        if count >= 1:
-            return jsonify({
-                "error": "Free plan limit reached. Upgrade to Pro to create unlimited courses.",
-                "upgrade_required": True,
-            }), 402
-
     existing = Course.query.filter_by(
         course_code=code, semester=semester, owner_id=user.id
     ).first()

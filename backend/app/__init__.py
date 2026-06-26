@@ -47,11 +47,10 @@ def _register_blueprints(app: Flask) -> None:
     from app.api.analytics import analytics_bp
     from app.api.users import users_bp
     from app.api.reports import reports_bp
-    from app.api.payments import payments_bp
 
     for bp in (
         auth_bp, courses_bp, sessions_bp, attendance_bp,
-        analytics_bp, users_bp, reports_bp, payments_bp,
+        analytics_bp, users_bp, reports_bp,
     ):
         app.register_blueprint(bp)
 
