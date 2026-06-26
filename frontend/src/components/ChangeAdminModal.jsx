@@ -34,8 +34,8 @@ export default function ChangeAdminModal({ blocking = false, onClose }) {
   };
 
   return (
-    <div className="payment-overlay">
-      <div className="payment-modal" style={{ maxWidth: 440 }}>
+    <div className="modal-overlay">
+      <div className="modal-dialog" style={{ maxWidth: 440 }}>
         <div style={{ marginBottom: 20 }}>
           <h2 style={{ marginBottom: 6, fontSize: 20 }}>
             {blocking ? "Select your admin" : "Change admin"}

@@ -1,8 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { useEffect, useState } from "react";
 import { useAuth } from "./context/AuthContext";
 import Layout from "./components/Layout";
-import PaymentModal from "./components/PaymentModal";
 import ChangeAdminModal from "./components/ChangeAdminModal";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -32,17 +30,8 @@ function Protected({ children }) {
 }
 
 export default function App() {
-  const [showUpgrade, setShowUpgrade] = useState(false);
-
-  useEffect(() => {
-    const handler = () => setShowUpgrade(true);
-    window.addEventListener("upgrade-required", handler);
-    return () => window.removeEventListener("upgrade-required", handler);
-  }, []);
-
   return (
     <>
-    {showUpgrade && <PaymentModal onClose={() => setShowUpgrade(false)} />}
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
