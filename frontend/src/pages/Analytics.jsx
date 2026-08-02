@@ -42,8 +42,9 @@ export default function Analytics() {
 
   useEffect(() => {
     if (!useHierarchy) { load(); return; }
-    if (selRep) load(selRep.id);
-    else { setCourses([]); setSem(null); }
+    if (selRep) { load(selRep.id); return; }
+    if (isSuper) { load(null); return; }   // aggregate when no rep selected
+    setCourses([]); setSem(null);
   }, [semester, selRep]);
 
   const download = () => {
@@ -90,7 +91,11 @@ export default function Analytics() {
     : "analytics";
 
   const goBack = () => {
-    if (selRep) { setSelRep(null); setCourses([]); setSem(null); return; }
+    if (selRep) {
+      setSelRep(null);
+      if (!isSuper) { setCourses([]); setSem(null); }  // super keeps aggregate
+      return;
+    }
     if (selAdmin) setSelAdmin(null);
   };
 
@@ -203,7 +208,7 @@ export default function Analytics() {
           </div>
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-          {level === "analytics" && (
+          {(level === "analytics" || isSuper) && (
             <>
               <input value={semester} onChange={(e) => setSemester(e.target.value)} style={{ width: 160 }} />
               <button className="btn ghost" onClick={download}><Download size={15} /> Export semester</button>
@@ -215,25 +220,41 @@ export default function Analytics() {
         </div>
       </div>
 
-      {level === "admins" && (
-        <GroupBrowser
-          items={adminGroups.map((g) => ({ ...g, countLabel: "rep" }))}
-          label="Admin"
-          onSelect={setSelAdmin}
-          empty="No admins found."
-        />
+      {/* Super admin: always show charts (aggregate until a rep is selected) */}
+      {isSuper && <ChartsSection />}
+
+      {/* Drill-down browser — shown below charts for super admin, or alone for admin */}
+      {level !== "analytics" && (
+        <>
+          {isSuper && (
+            <div style={{ margin: "24px 0 4px" }}>
+              <div style={{ fontWeight: 700, fontSize: 15, color: "var(--ink)" }}>Drill into specific analytics</div>
+              <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 2 }}>
+                Select {level === "admins" ? "an admin" : "a course rep"} to view their individual data
+              </div>
+            </div>
+          )}
+          {level === "admins" && (
+            <GroupBrowser
+              items={adminGroups.map((g) => ({ ...g, countLabel: "rep" }))}
+              label="Admin"
+              onSelect={setSelAdmin}
+              empty="No admins found."
+            />
+          )}
+          {level === "reps" && (
+            <GroupBrowser
+              items={repGroups.map((g) => ({ ...g, countLabel: "rep" }))}
+              label="Course Rep"
+              onSelect={setSelRep}
+              empty="No course reps found."
+            />
+          )}
+        </>
       )}
 
-      {level === "reps" && (
-        <GroupBrowser
-          items={repGroups.map((g) => ({ ...g, countLabel: "rep" }))}
-          label="Course Rep"
-          onSelect={setSelRep}
-          empty="No course reps found."
-        />
-      )}
-
-      {level === "analytics" && <ChartsSection />}
+      {/* Admin (non-super): only show charts once a rep is selected */}
+      {!isSuper && level === "analytics" && <ChartsSection />}
     </div>
   );
 }

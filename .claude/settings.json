@@ -16,7 +16,12 @@
       "PowerShell($env:PATH += \";C:\\\\Program Files\\\\Git\\\\bin\"; cd \"c:\\\\Users\\\\adele\\\\OneDrive\\\\Desktop\\\\code\\\\Web Development\\\\quick-attendance\"; git status --short | Select-String \"\\\\.env\")",
       "PowerShell($env:PATH += \";C:\\\\Program Files\\\\Git\\\\bin\"; cd \"c:\\\\Users\\\\adele\\\\OneDrive\\\\Desktop\\\\code\\\\Web Development\\\\quick-attendance\"; git commit -m \"Initial commit — Quick Attendance app with Stripe payments\")",
       "PowerShell($env:PATH += \";C:\\\\Program Files\\\\Git\\\\bin\"; cd \"c:\\\\Users\\\\adele\\\\OneDrive\\\\Desktop\\\\code\\\\Web Development\\\\quick-attendance\"; git remote add origin https://github.com/Oluwasemilore00/quick-attendance.git; git branch -M main; git push -u origin main)",
-      "PowerShell($env:PATH += \";C:\\\\Program Files\\\\Git\\\\bin\"; cd \"c:\\\\Users\\\\adele\\\\OneDrive\\\\Desktop\\\\code\\\\Web Development\\\\quick-attendance\"; git remote set-url origin https://github.com/Oluwasemilore00/Attendance.git; git push -u origin main)"
+      "PowerShell($env:PATH += \";C:\\\\Program Files\\\\Git\\\\bin\"; cd \"c:\\\\Users\\\\adele\\\\OneDrive\\\\Desktop\\\\code\\\\Web Development\\\\quick-attendance\"; git remote set-url origin https://github.com/Oluwasemilore00/Attendance.git; git push -u origin main)",
+      "Bash(Remove-Item \"c:\\\\Users\\\\adele\\\\OneDrive\\\\Desktop\\\\code\\\\Web Development\\\\quick-attendance\\\\frontend\\\\src\\\\components\\\\PaymentModal.jsx\" -Force)",
+      "Bash(Remove-Item \"c:\\\\Users\\\\adele\\\\OneDrive\\\\Desktop\\\\code\\\\Web Development\\\\quick-attendance\\\\backend\\\\app\\\\api\\\\payments.py\" -Force)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ]
   }
 }
