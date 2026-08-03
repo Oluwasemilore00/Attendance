@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import api from "../api/client";
+import api, { downloadFile } from "../api/client";
 import { Download, UserPlus, Trash2, Home, BookOpen } from "lucide-react";
 
 const AVATAR_COLORS = ["#4F46E5", "#059669", "#D97706", "#DB2777", "#0891B2", "#7C3AED"];
@@ -37,7 +37,7 @@ export default function CourseDetail() {
   };
 
   const download = () => {
-    window.open(`${import.meta.env.VITE_API_BASE || ""}/api/reports/course/${id}/excel`, "_blank");
+    downloadFile(`/api/reports/course/${id}/excel`);
   };
 
   if (!course) return <div className="muted" style={{ padding: 40 }}>Loading…</div>;

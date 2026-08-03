@@ -3,7 +3,7 @@ import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import api from "../api/client";
+import api, { downloadFile } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import GroupBrowser from "../components/GroupBrowser";
 import { Download, Home, ArrowLeft } from "lucide-react";
@@ -48,10 +48,9 @@ export default function Analytics() {
   }, [semester, selRep]);
 
   const download = () => {
-    const base = import.meta.env.VITE_API_BASE || "";
     const params = new URLSearchParams({ semester });
     if (selRep) params.set("owner_id", selRep.id);
-    window.open(`${base}/api/reports/semester/excel?${params}`, "_blank");
+    downloadFile(`/api/reports/semester/excel?${params}`);
   };
 
   const pieData = sem

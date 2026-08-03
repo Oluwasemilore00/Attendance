@@ -47,3 +47,22 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+/**
+ * Download a protected file endpoint as a blob and trigger a browser save.
+ * Uses the same axios instance so the Authorization header is sent automatically.
+ */
+export async function downloadFile(url) {
+  const res = await api.get(url, { responseType: "blob" });
+  const blobUrl = URL.createObjectURL(res.data);
+  const disposition = res.headers["content-disposition"] || "";
+  const match = disposition.match(/filename[^;=\n]*=["']?([^"';\n]+)["']?/i);
+  const filename = match ? match[1].trim() : "export.xlsx";
+  const a = document.createElement("a");
+  a.href = blobUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(blobUrl);
+}
